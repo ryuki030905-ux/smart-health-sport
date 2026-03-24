@@ -1,35 +1,50 @@
-# Contributing
+# 参与说明
 
-Thanks for taking interest in this project.
+感谢关注这个项目。
 
-## Project status
+## 仓库定位
 
-This repository is currently maintained primarily as a graduation-project showcase and reference implementation. Contributions are welcome, but the main goal is to keep the repository understandable, safe to publish, and aligned with the existing architecture.
+当前仓库主要用于毕业设计与求职面试展示，同时也作为一个完整的工程项目示例保留。贡献内容欢迎提交，但建议优先围绕项目可读性、展示效果、文档质量和工程完整性展开。
 
-## Before contributing
+## 提交前建议
 
-- Read `README.md` for the project overview
-- Read `ARCHITECTURE.md` for the current system structure
-- Avoid committing secrets, local environment files, or generated artifacts
-- Keep changes focused and easy to review
+在修改前，建议先阅读以下文件：
 
-## Contribution guidelines
+- `README.md`
+- `ARCHITECTURE.md`
+- `SECURITY.md`
 
-- Prefer small, single-purpose pull requests
-- Update documentation when behavior, setup, or architecture changes
-- Follow existing naming and module patterns in each service
-- Keep local-only assumptions out of tracked files when possible
+这样能更快理解项目定位、模块边界和当前公开仓库约束。
 
-## What is especially helpful
+## 建议的贡献方向
 
-- Documentation improvements
-- Security hardening suggestions
-- Better developer setup guidance
-- Tests for important business or AI integration behavior
-- UI polish that improves project presentation
+- 改善 README 和架构文档
+- 增强前端展示效果
+- 补充测试用例
+- 优化 AI 模块说明与可维护性
+- 提升项目的面试展示表达
+- 提出更好的安全加固建议
 
-## What to avoid
+## 不建议提交的内容
 
-- Committing `.env`, `venv`, `node_modules`, build artifacts, or IDE files
-- Mixing unrelated refactors into a single pull request
-- Adding production claims that the current architecture does not support
+- `.env` 等真实本地配置
+- `node_modules`、`venv`、`dist`、`target` 等构建产物
+- IDE 配置文件
+- 与当前问题无关的大范围重构
+
+## 提交原则
+
+- 尽量保持一次提交只解决一个问题
+- 修改行为时同步更新文档
+- 保持命名风格和模块边界一致
+- 不夸大当前仓库的生产可用性
+
+## 适合继续完善的方向
+
+如果后续继续迭代，这个项目还可以继续补充：
+
+- Docker 化部署
+- CI/CD 流程
+- 更多自动化测试
+- 更完整的管理员能力
+- 更成熟的 AI 评估与监控机制

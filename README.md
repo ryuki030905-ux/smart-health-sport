@@ -1,107 +1,191 @@
-# Smart Health Sport
+# 智能健康运动管理系统
 
-Smart Health Sport is a personal health and exercise management system built as a graduation project. It combines daily health records, exercise and diet tracking, chart-based analytics, role-based administration, and an AI assistant that generates personalized advice from current user data plus a local knowledge base.
+这是一个面向个人健康管理场景的前后端分离项目，用于展示完整的软件工程能力，包括业务系统开发、数据可视化、权限控制，以及 AI 健康建议集成。项目以“健康记录 + 运动管理 + 饮食分析 + AI 辅助建议”为核心，适合作为毕业设计与求职面试展示项目。
 
-## Features
+## 项目定位
 
-- Health record management with BMI and body fat related indicators
-- Exercise logging, exercise plans, and calorie burn calculation
-- Diet logging with food dictionary lookup and calorie intake calculation
-- Dashboard and chart views for weight, calorie balance, and weekly exercise
-- Admin tools for users, AI daily limits, exercise dictionary, and food dictionary
-- AI health assistant backed by a separate FastAPI service and markdown-based RAG knowledge
+本项目不是单纯的 CRUD 管理系统，而是一个围绕真实健康管理场景构建的综合应用。系统覆盖用户登录鉴权、健康档案、运动记录、饮食记录、统计图表、管理员后台，以及基于大模型和知识库检索的 AI 健康助手。
 
-## System overview
+仓库当前以 **项目展示** 为主要目标，强调架构完整性、功能闭环和技术亮点，不以“一键部署生产环境”为目标。
 
-This repository contains three local services:
+## 核心亮点
 
-| Part | Tech | Responsibility |
-|---|---|---|
-| Frontend | Vue 3, Vite, Element Plus, Pinia, ECharts | User interface, route handling, charts, AI assistant page |
-| Backend | Spring Boot, Spring Security, MyBatis-Plus, MySQL, Redis | Authentication, business APIs, statistics, admin APIs, AI orchestration |
-| AI service | FastAPI, LangChain, Chroma, sentence-transformers | Retrieve user context, run RAG, call OpenAI-compatible model, return advice |
+- 基于 **Vue 3 + Spring Boot + FastAPI** 的多服务协作架构
+- 完整的 **JWT 登录鉴权 + 角色权限控制**
+- 健康、运动、饮食三类核心数据统一管理
+- 使用 **ECharts** 展示体重趋势、热量收支、周运动统计等图表
+- 集成 **AI 健康助手**，支持结合用户当日数据生成个性化建议
+- AI 服务引入 **RAG 检索增强**，可结合本地知识库返回更贴近场景的回答
+- 引入 **Redis 缓存与限流机制**，控制 AI 请求频率并优化体验
 
-For a deeper explanation of module boundaries and request flow, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+## 技术栈
 
-## Main modules
+### 前端
 
-- User authentication and role-based access control
-- Health records
-- Exercise records and plans
-- Diet records and food lookup
-- Statistics dashboard
-- AI advice generation
-- Admin management
+- Vue 3
+- Vite
+- Element Plus
+- Pinia
+- Vue Router
+- Axios
+- ECharts
 
-## Local development topology
+### 后端
 
-This project is currently organized for local development and showcase usage, not turnkey public deployment.
-
-| Service | Default port | Notes |
-|---|---:|---|
-| Frontend dev server | 5173 | Proxies `/api` to the Spring Boot backend |
-| Spring Boot backend | 8080 | Main REST API |
-| FastAPI AI service | 8000 | Receives AI advice requests from backend |
-| MySQL | 3306 | Main application database |
-| Redis | 6379 | Cache, AI quota, token blacklist |
-| OpenAI-compatible endpoint | 8787 | Referenced by the AI service example config |
-
-## Repository status
-
-This repository has been cleaned for public visibility, but it still reflects a local-development architecture.
-
-- Real secrets have been removed from tracked files
-- Example configuration is provided for the AI service
-- Backend configuration now uses environment variable placeholders
-- Architecture documentation has been refreshed to match the current codebase
-
-## Setup note
-
-This repository is published primarily as a project showcase. It is possible to run locally with MySQL, Redis, the Java backend, the Python AI service, and the frontend dev server, but the repository does not currently guarantee one-command startup or production-ready deployment.
-
-To experiment locally, prepare these prerequisites first:
-
-- Java 17
-- Node.js and npm
-- Python 3.11+ recommended
+- Spring Boot 3
+- Spring Security 6
+- JWT
+- MyBatis-Plus
 - MySQL 8
 - Redis
-- An OpenAI-compatible model endpoint or local alternative for the AI service
 
-Use these files as starting points:
+### AI 服务
+
+- FastAPI
+- LangChain
+- Chroma
+- sentence-transformers
+- OpenAI 兼容模型接口
+
+## 系统结构
+
+整个项目由三个主要部分组成：
+
+| 模块 | 技术 | 作用 |
+|---|---|---|
+| 前端 | Vue 3 + Element Plus | 页面展示、表单交互、图表渲染、AI 建议展示 |
+| 后端 | Spring Boot + Security + MyBatis-Plus | 用户认证、业务接口、统计接口、管理员接口、AI 调度 |
+| AI 服务 | FastAPI + LangChain + RAG | 获取用户上下文、检索知识库、调用大模型生成建议 |
+
+更详细的架构说明见：[ARCHITECTURE.md](./ARCHITECTURE.md)
+
+## 功能模块
+
+### 1. 用户与权限
+
+- 用户注册、登录、退出
+- JWT 鉴权
+- 普通用户 / 管理员角色区分
+- 管理端页面访问限制
+
+### 2. 健康档案
+
+- 记录体重、身高、血压、血糖、心率等健康指标
+- 自动计算 BMI、体脂率、健康状态
+
+### 3. 运动管理
+
+- 运动记录新增与查询
+- 运动计划制定与完成进度展示
+- 根据 MET 公式估算热量消耗
+
+### 4. 饮食记录
+
+- 记录每日饮食摄入
+- 支持食物字典搜索
+- 自动估算热量摄入
+
+### 5. 数据统计可视化
+
+- 体重趋势图
+- 热量收支图
+- 周运动统计图
+
+### 6. AI 健康助手
+
+- 根据用户当日健康、运动、饮食数据生成建议
+- 支持综合建议、饮食建议、运动建议三类模式
+- 结合本地知识库做 RAG 检索增强
+- 返回更贴近用户状态的个性化建议结果
+
+### 7. 管理后台
+
+- 用户管理
+- 用户状态控制
+- AI 次数管理
+- 运动字典与食物字典维护
+
+## AI 功能链路
+
+AI 模块是本项目最适合面试展示的部分之一，完整链路如下：
+
+1. 前端发起 AI 建议请求
+2. Spring Boot 后端校验登录状态与每日调用次数
+3. 后端调用 FastAPI AI 服务
+4. AI 服务回查用户当日健康、运动、饮食数据
+5. AI 服务检索本地健康知识库内容
+6. AI 服务拼接 Prompt 并调用 OpenAI 兼容模型接口
+7. 生成的建议结果返回后端，再返回前端展示
+
+这部分体现了跨服务调用、缓存、限流、数据聚合、Prompt 组装、RAG 检索等多种能力。
+
+## 本地开发默认端口
+
+| 服务 | 默认端口 |
+|---|---:|
+| 前端 | 5173 |
+| Spring Boot 后端 | 8080 |
+| FastAPI AI 服务 | 8000 |
+| MySQL | 3306 |
+| Redis | 6379 |
+
+## 项目展示说明
+
+当前仓库已经按公开展示做过整理：
+
+- 已移除真实敏感配置
+- 已补充示例配置文件
+- 已更新架构文档
+- 已补充 License、Security、Contributing 等基础仓库文件
+
+当前更适合用于：
+
+- 面试项目展示
+- 毕业设计成果展示
+- 技术栈与系统设计能力说明
+
+## 运行说明
+
+本项目支持本地运行，但当前仓库更强调展示价值，而不是完整生产部署方案。若需本地体验，需要自行准备以下环境：
+
+- Java 17
+- Node.js
+- Python 3.11+
+- MySQL 8
+- Redis
+- 可用的大模型接口或本地兼容代理
+
+可参考以下配置文件：
 
 - `health-sport-backend/src/main/resources/application.yml`
 - `health-sport-backend/src/main/resources/application-example.yml`
-- `ai-service/.env.example`
 - `health-sport-frontend/.env.example`
-- `health-sport-frontend/vite.config.js`
+- `ai-service/.env.example`
 
-## AI feature notes
+## 项目局限性
 
-The AI assistant is not a standalone chatbot. The request path is:
+- 当前仓库更偏向本地开发与项目展示
+- 尚未提供 Docker 化一键部署方案
+- AI 功能依赖额外模型服务
+- 医疗相关建议仅用于学习与展示，不构成真实医疗诊断意见
 
-1. Frontend sends advice request to Spring Boot
-2. Spring Boot checks quota and forwards the request to the AI service
-3. AI service pulls current health, exercise, and diet context from backend internal endpoints
-4. AI service combines live user context with markdown knowledge retrieved from a local Chroma vector store
-5. AI service calls an OpenAI-compatible model endpoint and returns generated advice
+## 面试展示建议
 
-This means the AI feature depends on more than one process and more than one storage layer.
+如果用于面试，建议重点讲以下几个方面：
 
-## Limitations
+- 为什么项目采用前后端分离 + 独立 AI 服务架构
+- JWT 鉴权、角色权限和接口设计是如何实现的
+- BMI、体脂率、卡路里计算如何落地到业务中
+- AI 功能为什么不直接写在后端，而是拆成独立服务
+- RAG 检索增强相比直接调用大模型有什么价值
+- 遇到过哪些联调、超时、缓存、权限相关问题，以及如何排查和修复
 
-- Current configuration is local-development oriented
-- No one-command containerized setup is included yet
-- AI capabilities depend on an external or local model endpoint
-- Some internal and debug surfaces are still intended only for local development
-- This project is for educational and engineering demonstration purposes, not medical diagnosis or treatment
+## 安全说明
 
-## Security and privacy
+项目中包含健康相关数据字段，真实部署时应按敏感数据系统对待。当前仓库仅用于学习、展示和工程能力说明，不建议未经加固直接公网部署。
 
-This project handles health-related records. It should be treated as sensitive data in any real deployment. Security hardening, deployment isolation, and production-specific secret management should be completed before exposing this stack publicly on the internet.
+详细安全说明见：[SECURITY.md](./SECURITY.md)
 
-Please see [SECURITY.md](./SECURITY.md) before reporting vulnerabilities or deploying this project outside a local environment.
+## 开源协议
 
-## License
-
-This repository is released under the MIT License. See [LICENSE](./LICENSE).
+本项目采用 MIT License。

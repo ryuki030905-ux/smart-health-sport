@@ -1,33 +1,40 @@
-# Security Policy
+# 安全说明
 
-## Scope
+## 适用范围
 
-This repository is currently published as a local-development and project-showcase codebase. It is not presented as a production-ready healthcare platform.
+当前仓库主要用于项目展示、学习交流和面试说明，不作为生产级医疗健康平台发布。虽然项目中涉及健康记录、运动数据、饮食数据等字段，但当前版本更偏向工程展示，不代表已完成面向公网的全部安全加固。
 
-The project processes health-related records such as body metrics, exercise history, and diet records. Any real deployment should treat that data as sensitive and perform additional security hardening before internet exposure.
+## 漏洞反馈
 
-## Reporting a vulnerability
+如果发现安全问题，不建议直接在公开 Issue 中披露。
 
-Please do not open a public issue for a suspected security problem.
+建议采用以下方式：
 
-Instead:
+1. 整理问题描述、影响范围和复现步骤
+2. 通过 GitHub 私密渠道或仓库拥有者可联系的方式反馈
+3. 说明该问题是仅影响本地开发，还是可能影响真实部署场景
 
-1. Prepare a short report with reproduction steps, affected files or endpoints, and possible impact.
-2. Contact the repository owner through GitHub private channels if available.
-3. Include whether the issue affects only local development or could affect a deployed environment.
+## 当前安全原则
 
-## Current expectations
+- 不提交真实密钥、账号密码和本地敏感配置
+- internal 接口仅用于本地 AI 服务回查数据
+- debug 接口默认关闭，仅本地开发显式开启时使用
+- 公开展示版本使用示例配置，不使用真实生产配置
+- AI 输出仅用于学习展示，不构成医疗诊断意见
 
-- Secrets should never be committed to the repository.
-- Internal and debug endpoints should be treated as local-development surfaces.
-- Public deployment should use environment-based secrets, restricted origins, and network isolation.
-- The AI feature should not be treated as medical advice or diagnosis.
+## 当前已知前提
 
-## Out of scope
+当前版本默认基于本地开发环境，仍存在以下非生产化前提：
 
-The following are known non-production assumptions in the current showcase version:
+- 本地端口约定
+- 本地数据库与 Redis
+- 本地或外部 OpenAI 兼容模型服务
+- 本地代理与开发跨域配置
 
-- local-development ports and service URLs
-- local proxy assumptions for frontend development
-- locally hosted or externally provided OpenAI-compatible model endpoint
-- local MySQL and Redis setup
+如果未来要真实部署，仍需要补充：
+
+- 生产环境密钥管理
+- 更严格的 CORS 策略
+- 网关与网络隔离
+- HTTPS 与证书配置
+- 日志审计与异常告警

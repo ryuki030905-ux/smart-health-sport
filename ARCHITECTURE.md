@@ -1,173 +1,199 @@
-# Smart Health Sport Architecture
+# 智能健康运动管理系统架构说明
 
-## Project position
+## 一、项目概述
 
-Smart Health Sport is a personal health and exercise management system built as a graduation project. The repository is organized as a local multi-service application with a Vue frontend, a Spring Boot backend, and a separate FastAPI-based AI service.
+本项目是一个围绕“个人健康管理”场景设计的综合型系统，目标不是做单一的数据录入，而是将健康档案、运动管理、饮食管理、统计分析和 AI 智能建议整合到同一个完整业务闭环中。
 
-This document describes the current codebase structure and request flow. It is intended as a human-facing technical overview rather than an internal implementation checklist.
+系统采用前后端分离，并将 AI 能力拆分为独立服务。这样既能体现传统业务系统开发能力，也能展示对大模型集成、多服务协作、RAG 检索增强等方向的理解。
 
-## Runtime architecture
+## 二、整体架构
 
-The system is composed of three main runtime parts plus three storage layers.
+系统由三个主要运行模块和三个数据支撑模块组成。
 
-| Layer | Technology | Role |
+| 层级 | 技术 | 作用 |
 |---|---|---|
-| Frontend | Vue 3, Vite, Element Plus, Pinia, ECharts | UI, route handling, forms, charts, AI assistant workflow |
-| Backend API | Spring Boot, Spring Security, MyBatis-Plus | Authentication, domain APIs, statistics, admin features, AI orchestration |
-| AI service | FastAPI, LangChain, Chroma, sentence-transformers | User-context assembly, RAG retrieval, model invocation |
-| Primary storage | MySQL | Core application data |
-| Cache and quota | Redis | Token blacklist, caches, AI rate limiting |
-| Knowledge retrieval | Chroma + markdown files | AI knowledge base and local vector store |
+| 前端展示层 | Vue 3、Vite、Element Plus、Pinia、ECharts | 页面交互、图表展示、AI 建议展示 |
+| 业务后端层 | Spring Boot、Spring Security、MyBatis-Plus | 用户认证、业务接口、统计分析、管理员能力、AI 调度 |
+| AI 服务层 | FastAPI、LangChain、Chroma、sentence-transformers | 用户上下文拉取、知识检索、Prompt 拼装、大模型调用 |
+| 主数据存储 | MySQL | 用户、健康、运动、饮食、计划等业务数据 |
+| 缓存与控制 | Redis | Token、缓存、AI 次数限制 |
+| 知识检索存储 | Chroma + Markdown 知识库 | AI 检索增强所需的本地知识库 |
 
-## High-level request flow
+## 三、架构设计思路
 
-### Standard business flow
+### 1. 前端与后端分离
 
-1. The browser interacts with the Vue SPA.
-2. The frontend sends requests to `/api`.
-3. Vite rewrites `/api` to the Spring Boot backend path `/api/v1` in local development.
-4. Spring Boot authenticates the request with JWT, performs business logic, and reads or writes MySQL and Redis as needed.
-5. The backend returns a unified `Result` payload to the frontend.
+前端负责用户交互、页面路由、表单提交和图表展示。后端负责数据校验、权限控制、业务计算和统一接口输出。这样可以保证页面逻辑和业务逻辑职责清晰，便于后续维护与扩展。
 
-### AI advice flow
+### 2. AI 服务独立拆分
 
-1. The frontend AI page submits an advice request to the backend.
-2. The backend checks AI quota and calls the FastAPI AI service.
-3. The AI service requests current user health, exercise, and diet summaries from backend internal endpoints.
-4. The AI service retrieves related markdown knowledge from a local Chroma vector store.
-5. The AI service builds a prompt and calls an OpenAI-compatible model provider.
-6. The generated advice is returned to Spring Boot and then to the frontend.
+AI 功能没有直接写进 Spring Boot 后端，而是拆成单独的 FastAPI 服务。这样做的原因有两点：一是便于隔离大模型调用、Prompt 组装和知识检索逻辑；二是更适合后续单独升级 AI 能力，而不影响主业务系统。
 
-## Frontend architecture
+### 3. 数据与 AI 结合
 
-The frontend is located in `health-sport-frontend/` and is built with Vue 3 and Vite.
+AI 建议不是纯聊天，而是依赖用户当日的真实数据，包括体重、运动时长、热量摄入和热量消耗。也就是说，AI 模块是建立在业务数据基础上的智能增强，而不是完全独立的展示功能。
 
-### Main route groups
+## 四、模块划分
 
-- `dashboard` - overview page
-- `health` - health record management
-- `exercise` - exercise records and plans
-- `diet` - diet records
-- `charts` - statistics and visualization
-- `ai` - AI health assistant
-- `admin/users` - user management for administrators
-- `admin/dict` - exercise and food dictionary management for administrators
+## 前端模块
 
-### Frontend responsibilities
+前端目录位于 `health-sport-frontend/`，主要负责页面呈现与交互体验。
 
-- Maintain login state with Pinia
-- Send authenticated requests with Axios
-- Render charts and dashboard summaries
-- Collect AI request context and display returned advice
-- Handle role-based route protection in the client
+主要页面包括：
 
-## Backend architecture
+- 首页总览 `dashboard`
+- 健康档案 `health`
+- 运动管理 `exercise`
+- 饮食记录 `diet`
+- 数据图表 `charts`
+- AI 健康助手 `ai`
+- 管理员用户管理 `admin/users`
+- 管理员字典管理 `admin/dict`
 
-The backend is located in `health-sport-backend/` and uses Spring Boot 3.x.
+前端核心职责：
 
-### Core backend modules
+- 登录状态管理
+- 路由控制与权限跳转
+- 与后端接口通信
+- 图表渲染与数据可视化
+- AI 建议展示与错误提示处理
 
-- **Auth** - register, login, logout, JWT handling
-- **Health** - personal health record storage and derived indicators
-- **Exercise** - exercise dictionary, exercise records, exercise plans
-- **Diet** - food dictionary search and diet records
-- **Statistics** - aggregated chart data and summaries
-- **AI** - advice request entrypoint, quota handling, caching, service-to-service calls
-- **Admin** - user status, AI limits, and dictionary management
+## 后端模块
 
-### Security model
+后端目录位于 `health-sport-backend/`，是系统的核心业务处理层。
 
-- JWT-based stateless authentication
-- Public access for auth endpoints and exercise dictionary lookup
-- Admin endpoints protected by role checks
-- AI endpoints require authenticated users
-- Internal endpoints currently exist for local AI-service integration
+主要模块包括：
 
-### Data model overview
+- **认证模块**：注册、登录、JWT 生成与校验
+- **健康模块**：健康档案记录、BMI 与体脂率计算
+- **运动模块**：运动记录、计划管理、热量消耗估算
+- **饮食模块**：饮食记录、食物字典、热量摄入估算
+- **统计模块**：体重趋势、热量收支、周运动汇总
+- **AI 模块**：AI 请求入口、限流、缓存、服务转发
+- **管理模块**：用户管理、AI 次数管理、字典维护
 
-Main domain tables include:
+后端同时承担统一响应结构、异常处理、权限校验等基础职责。
 
-- `user`
-- `health_record`
-- `exercise_dict`
-- `exercise_record`
-- `exercise_plan`
-- `food_dict`
-- `diet_record`
+## AI 服务模块
 
-The backend also calculates and exposes derived values such as BMI, body fat estimates, calorie intake, calorie burn, weight trends, and weekly exercise summaries.
+AI 服务目录位于 `ai-service/`，主要负责生成健康建议。
 
-## AI service architecture
+核心职责包括：
 
-The AI service is located in `ai-service/` and uses FastAPI.
+- 接收后端传来的 AI 建议请求
+- 获取用户当天健康、运动、饮食上下文
+- 检索本地知识库内容
+- 拼装 Prompt
+- 调用 OpenAI 兼容接口
+- 返回结构化建议结果
 
-### Main responsibilities
+这个模块体现的是“业务数据 + 检索增强 + 模型生成”的组合能力。
 
-- Accept AI advice requests from Spring Boot
-- Pull latest user health, exercise, and diet summaries from backend internal endpoints
-- Build prompts from live user context
-- Retrieve relevant knowledge from markdown documents through local vector search
-- Invoke an OpenAI-compatible model endpoint
-- Return structured advice to the backend
+## 五、请求链路
 
-### Knowledge retrieval pipeline
+## 普通业务请求链路
 
-- Markdown knowledge files are stored in `ai-service/knowledge/`
-- Text is embedded with a HuggingFace BGE model
-- Vectors are stored in a local Chroma database
-- Retrieval context is combined with user-specific runtime data before model invocation
+普通业务接口的调用过程如下：
 
-## Key calculations
+1. 浏览器访问 Vue 前端页面
+2. 前端通过 Axios 请求 `/api`
+3. Vite 开发代理将请求转发到 Spring Boot 后端 `/api/v1`
+4. Spring Boot 校验 JWT 与权限
+5. 后端调用数据库和缓存完成业务处理
+6. 后端以统一 `Result` 格式返回前端
 
-The backend uses explicit health and calorie formulas in utility logic.
+## AI 建议请求链路
 
-### BMI
+AI 建议接口是本项目最有代表性的链路之一：
+
+1. 用户在 AI 助手页面选择建议类型并提交请求
+2. 前端将请求发送给 Spring Boot 后端
+3. 后端校验登录状态，并检查用户 AI 调用次数
+4. 后端调用 FastAPI AI 服务
+5. AI 服务向后端内部接口回查用户当天数据
+6. AI 服务从本地知识库中检索相关内容
+7. AI 服务将用户数据与知识库内容拼装为 Prompt
+8. AI 服务调用 OpenAI 兼容模型接口生成建议
+9. 结果返回 Spring Boot，再返回前端展示
+
+这个过程同时涉及权限控制、缓存控制、跨服务通信、上下文聚合和模型调用。
+
+## 六、权限与安全设计
+
+系统采用 JWT 进行无状态认证。登录成功后，前端保存 token，后续请求通过请求头携带。后端使用 Spring Security 统一校验 token 和角色权限。
+
+权限控制原则如下：
+
+- 登录、注册接口对匿名用户开放
+- 普通业务接口要求用户登录
+- 管理员接口要求具备管理员角色
+- AI 建议接口必须登录后才能访问
+- 后端 internal 接口仅允许本机调用，用于 AI 服务回查用户数据
+- AI debug 接口默认关闭，仅本地开发显式开启时才注册
+
+这部分体现了系统在公开展示之外，对服务边界和安全面的基本考虑。
+
+## 七、核心数据模型
+
+项目核心数据表包括：
+
+- `user` 用户表
+- `health_record` 健康记录表
+- `exercise_dict` 运动字典表
+- `exercise_record` 运动记录表
+- `exercise_plan` 运动计划表
+- `food_dict` 食物字典表
+- `diet_record` 饮食记录表
+
+这些表共同支撑用户的健康、运动、饮食和统计分析能力。
+
+## 八、关键业务计算
+
+### 1. BMI
 
 \[
-BMI = \frac{weight\,(kg)}{(height\,(m))^2}
+BMI = \frac{体重(kg)}{身高(m)^2}
 \]
 
-### Body fat estimate
+### 2. 体脂率估算
 
-The codebase uses a BMI-based body fat estimate derived from age and gender.
+项目中采用基于 BMI、年龄、性别的估算方式，用于生成辅助型健康指标。
 
-### Exercise calories
+### 3. 运动热量消耗
 
-Exercise calories are derived from MET values, user weight, duration, and intensity.
+运动消耗基于 MET 代谢当量、体重、运动时长和强度系数进行估算。
 
-### Diet calories
+### 4. 饮食热量摄入
 
-Diet calories are derived from consumed quantity and food dictionary calories-per-100g values.
+饮食摄入根据食物字典中的每 100g 热量和用户实际摄入量进行计算。
 
-## Local development defaults
+## 九、为什么这样设计
 
-Typical local assumptions in the current repository are:
+这个项目的架构不是为了追求复杂，而是为了让每一层职责清晰。
 
-- Frontend dev server: `5173`
-- Spring Boot backend: `8080`
-- FastAPI AI service: `8000`
-- MySQL: `3306`
-- Redis: `6379`
-- OpenAI-compatible model endpoint: `127.0.0.1:8787`
+- 前端负责交互与展示
+- Spring Boot 负责主业务逻辑与权限控制
+- FastAPI 负责 AI 相关逻辑与模型对接
 
-These values reflect local showcase usage, not a production deployment template.
+这样拆分后，系统既能展示传统 Web 开发能力，也能体现对 AI 应用集成的工程化理解。
 
-## Current architectural constraints
+## 十、适合面试讲解的重点
 
-- The repository is optimized for local development and project demonstration
-- The AI feature depends on multiple running services and external model access
-- Internal and debug endpoints are still development-oriented surfaces
-- Production hardening and deployment orchestration are not yet fully packaged in this repository
-- Public release requires careful secret management and environment separation
+如果在面试中介绍本项目，建议重点讲以下几部分：
 
-## Suggested reading order
+1. 为什么将 AI 模块拆成独立服务
+2. JWT 权限控制是怎么做的
+3. 健康、运动、饮食三类数据如何形成业务闭环
+4. AI 建议为什么要结合用户数据而不是纯聊天
+5. RAG 检索增强在这个项目里的价值是什么
+6. 实际联调中遇到过哪些问题，例如超时、缓存、响应结构不一致、跨服务调用等
 
-For a quick code-oriented orientation, these files are the best starting points:
+## 十一、当前仓库特点
 
-- `health-sport-frontend/src/router/index.js`
-- `health-sport-frontend/src/api/index.js`
-- `health-sport-backend/src/main/java/com/healthsport/controller/`
-- `health-sport-backend/src/main/java/com/healthsport/service/impl/AiServiceImpl.java`
-- `ai-service/main.py`
-- `ai-service/agent.py`
-- `ai-service/rag.py`
+当前仓库已经过公开展示整理，更适合：
+
+- 面试项目展示
+- 毕业设计项目说明
+- 技术栈与架构能力展示
+
+当前仍然偏向本地开发与展示环境，不是完整生产部署模板。若后续要继续完善，可以再补 Docker、部署文档、CI/CD 和更完整的测试体系。
