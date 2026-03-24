@@ -1,0 +1,38 @@
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.classpath
+.factorypath
+.project
+.settings/
+
+# Node
+**/node_modules/
+**/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python
+**/venv/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.vectorstore/
+
+# Java
+**/target/
+
+# Environment and secrets
+**/.env
+**/.env.*
+
+# Local outputs
+out/
+opencode.exe

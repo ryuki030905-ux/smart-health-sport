@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: health-sport-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/health_sport?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:          # 没密码留空
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+  ai:
+    service:
+      base-url: http://localhost:8000
+    cache:
+      ttl-hours: 24
+      daily-limit: 3
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+jwt:
+  secret: your-very-strong-jwt-secret-key-change-me-in-prod
+  expire-seconds: 86400
+
