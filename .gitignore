@@ -37,3 +37,4 @@ pnpm-debug.log*
 # Local outputs
 out/
 opencode.exe
+.worktrees/
