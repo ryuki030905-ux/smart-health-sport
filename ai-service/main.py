@@ -15,6 +15,10 @@ from rag import get_rag_status
 
 load_dotenv()
 
+DEBUG_VERBOSE = os.getenv("DEBUG_VERBOSE", "false").strip().lower() == "true"
+ALLOW_CREDENTIALS = os.getenv("ALLOW_CREDENTIALS", "false").strip().lower() == "true"
+ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if origin.strip()]
+
 app = FastAPI(
     title="健康运动 AI 服务",
     description="基于 LangChain Agent + RAG 的个性化健康建议服务",
@@ -23,8 +27,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=ALLOW_CREDENTIALS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -64,29 +68,30 @@ def health_check():
     }
 
 
-@app.get("/debug/status")
-def debug_status():
-    return get_debug_snapshot()
+if DEBUG_VERBOSE:
+    @app.get("/debug/status")
+    def debug_status():
+        return get_debug_snapshot()
 
 
-@app.post("/debug/llm")
-def debug_llm(req: DebugLlmRequest):
-    class _Req:
-        user_id = 0
-        advice_type = req.advice_type
-        weight = None
-        exercise_minutes_today = None
-        calories_intake_today = None
-        calories_burned_today = None
-        goal = "调试"
-        extra_question = req.extra_question or req.prompt
-        record_date = None
+    @app.post("/debug/llm")
+    def debug_llm(req: DebugLlmRequest):
+        class _Req:
+            user_id = 0
+            advice_type = req.advice_type
+            weight = None
+            exercise_minutes_today = None
+            calories_intake_today = None
+            calories_burned_today = None
+            goal = "调试"
+            extra_question = req.extra_question or req.prompt
+            record_date = None
 
-    result = run_health_agent(_Req())
-    return {
-        "success": True,
-        "result": result,
-    }
+        result = run_health_agent(_Req())
+        return {
+            "success": True,
+            "result": result,
+        }
 
 
 @app.post("/agent/advice", response_model=AdviceResponse)

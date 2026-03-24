@@ -8,6 +8,7 @@ import com.healthsport.mapper.ExerciseRecordMapper;
 import com.healthsport.mapper.HealthRecordMapper;
 import com.healthsport.mapper.DietRecordMapper;
 import com.healthsport.utils.Result;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,10 +45,11 @@ public class InternalController {
      */
     @GetMapping("/health")
     public Result<Map<String, Object>> getHealth(
+            HttpServletRequest request,
             @RequestParam Long userId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
-        checkLocalhost();
+        checkLocalhost(request);
         LocalDate queryDate = (date != null) ? date : LocalDate.now();
 
         HealthRecord record = healthRecordMapper.selectOne(
@@ -71,10 +73,11 @@ public class InternalController {
      */
     @GetMapping("/exercise")
     public Result<Map<String, Object>> getExercise(
+            HttpServletRequest request,
             @RequestParam Long userId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
-        checkLocalhost();
+        checkLocalhost(request);
         LocalDate queryDate = (date != null) ? date : LocalDate.now();
 
         List<ExerciseRecord> records = exerciseRecordMapper.selectList(
@@ -106,10 +109,11 @@ public class InternalController {
      */
     @GetMapping("/diet")
     public Result<Map<String, Object>> getDiet(
+            HttpServletRequest request,
             @RequestParam Long userId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
-        checkLocalhost();
+        checkLocalhost(request);
         LocalDate queryDate = (date != null) ? date : LocalDate.now();
 
         List<DietRecord> records = dietRecordMapper.selectList(
@@ -133,8 +137,19 @@ public class InternalController {
     /**
      * 仅允许本机调用，防止外部恶意请求
      */
-    private void checkLocalhost() {
-        // 注意：生产环境建议通过网关/防火墙做 IP 白名单
-        // 此处做简单检查，仅记录日志，不强制拦截
+    private void checkLocalhost(HttpServletRequest request) {
+        assertLocalRequest(request.getRemoteAddr());
+    }
+
+    private static void assertLocalRequest(String remoteAddr) {
+        if (remoteAddr == null) {
+            throw new SecurityException("仅允许本机访问 internal 接口");
+        }
+
+        if ("127.0.0.1".equals(remoteAddr) || "0:0:0:0:0:0:0:1".equals(remoteAddr) || "::1".equals(remoteAddr)) {
+            return;
+        }
+
+        throw new SecurityException("仅允许本机访问 internal 接口");
     }
 }
